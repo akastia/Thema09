@@ -1,0 +1,19 @@
+---
+title: "Log"
+author: "Akastia Christo"
+date: " `r sys.date()` "
+output: 
+    pdf_document
+      
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#Introduction
+The data are described in detail. It is known
+o where they came from and how they were collected
+o what the variables are and what abbreviations mean
+o what the data types of the variables are, what values they may have, and in
+what units they were measured
+o what the dependent / class variable is
