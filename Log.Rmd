@@ -1,19 +1,36 @@
 ---
-title: "Log"
+title: "Myocardial infarction complications EDA"
 author: "Akastia Christo"
 date: " `r sys.date()` "
 output: 
-    pdf_document
+    pdf_document: default
       
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-#Introduction
-The data are described in detail. It is known
-o where they came from and how they were collected
-o what the variables are and what abbreviations mean
-o what the data types of the variables are, what values they may have, and in
-what units they were measured
-o what the dependent / class variable is
+# Introduction
+
+The purpose of this assignment is to train you in performing reproducible research.
+The remainder of this document logs an exploratory data analysis. It is your task to study this EDA and describe weaknesses with respect to reproducibility.
+
+Reproducibility is guaranteed by the following aspects of an analysis:
+
+1. There is a log of all steps of the analysis  
+2. The log is in English and is easy to read (spelling/grammar/formulations)
+3. The data are described in detail. It is known  
+    - where they came from and how they were collected
+    - what the variables are and what abbreviations mean
+    - what the data types of the variables are, what values they may have, and in what units they were measured
+    - what the dependent / class variable is
+4. There are no data processing steps missing in the log (or its rendered result!)  
+5. It is clear what the sequence of processing or analysis steps is (also chronologically), and why they were undertaken in that particular order
+6. Every step has  
+    - an intro: why is it carried out   
+    - a result: presented in clear tables or figures or other relevant means  
+    - a conclusion: was the step succesful, are the results as expected, what action should additionaly be done, what questions do arise as a result etc.
+
+
+Here follows the actual EDA. It is written entirely using the _tidyverse_ packages as well as some others. Study it in pairs or trios and report flaws, errors, weaknesses and possible solutons/repairs at the end of the session.
+
