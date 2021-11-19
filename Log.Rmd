@@ -1,31 +1,26 @@
 ---
-title: "Myocardial infarction complications EDA"
+title: "Myocardial infarction complications"
 author: "Akastia Christo"
-date: " `r sys.date()` "
-output: 
-    html_document: default
-    pdf_document: default
-    word_document: default
-      
+date: " `r Sys.Date()` "
+header-includes:
+   - \usepackage{longtable}
+   - \usepackage{hyperref}
+output:
+    pdf_document:
+      fig_caption: yes
+      number_sections: yes
+      toc: yes
+editor_options:
+  chunk_output_type: inline
+linkcolor: blue
 ---
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(cache = TRUE)
 ```
-# Introduction
 
-Problems of real-life complexity are needed to test and compare various data mining and pattern recognition methods. The proposed database can be used to solve two practically important problems: predicting complications of Myocardial Infarction (MI) based on information about the patient (i) at the time of admission and (ii) on the third day of the hospital period. Another important group of tasks is phenotyping of disease (cluster analysis), dynamic phenotyping (filament extraction and identification of disease trajectories) and visualisation (disease mapping).
-MI is one of the most challenging problems of modern medicine. Acute myocardial infarction is associated with high mortality in the first year after it. The incidence of MI remains high in all countries. This is especially true for the urban population of highly developed countries, which is exposed to chronic stress factors, irregular and not always balanced nutrition. In the United States, for example, more than a million people suffer from MI every year, and 200-300 thousand of them die from acute MI before arriving at the hospital.
-The course of the disease in patients with MI is different. MI can occur without complications or with complications that do not worsen the long-term prognosis. At the same time, about half of patients in the acute and subacute periods have complications that lead to worsening of the disease and even death. Even an experienced specialist can not always foresee the development of these complications. In this regard, predicting complications of myocardial infarction in order to timely carry out the necessary preventive measures is an important task.
-Myocardial  infarction  complications  Database was collected  in the  Krasnoyarsk Interdistrict Clinical Hospital No20 named after I. S. Berzon (Russia) in 1992-1995.Database  contains  1700  records  (patients),  111  input  features  and  12  complications. In the database contains 7.6% of missing values. 
-
-#Research question
-
-Can you predict the complications of the patients after the third day of the admission based on the admission period using the machine learning? And which complications did lead to worsening of the MI and does the age play a role?
-
-# EDA of myocardial infarction complications data 
-
-Loading the libraries that is needed for EDA for this project
 ```{r, include=FALSE}
 options(digits = 3)
 library(dplyr)
@@ -36,139 +31,264 @@ library(gridExtra)
 library(GGally)
 library(purrr)
 library(psych)
+library(kableExtra)
+library(ggbiplot)
 ```
 
-Loading the data Myocardial infraction complications to inspect the data.
-```{r load-data, message=FALSE}
 
+# Introduction
+
+Myocardial infraction (MI), is known as heart attacks happens when one or more areas of the heart mucles do not get enough oxygen which can happen when the blood flow of the heart muscle is blocked \cite{hopkins}
+MI is one of the most challenging problems of the modern medicine. 
+Because the course of disease in patients with MI differs each patient. MI can happen with or without complications that do not affect the long-term prognosis. Approximately half of the patients in the acture and subactute period experience complication that results in worsening of the disease or death. Even an experienced specialist may not be able to predict the development of these complications.
+Acute MI is associated with high mortality in the first year after it. The incidence of MI remains high in all countries. This is especially true for the urban population of highly developed countries, which is exposed to chronic stress factors, irregular and not always balanced nutrition. \cite{MLR}
+
+## Data
+
+Myocardial  infarction  complications  Database was collected  in the  Krasnoyarsk Interdistrict Clinical Hospital No20 named after I. S. Berzon (Russia) in 1992-1995.Database  contains  1700  records  (patients),  111  input  features  and  12  complications. In the database contains 7.6% of missing values. 
+
+The codebook for this dataset can be found as a pdf and is available in the repo. Because the data set is large it is difficult to make a codebook from it. 
+
+## Research question
+
+Can you predict the complications of the patients after the third day of the admission based on the admission period using the machine learning? And which complications did lead to worsening of the MI and does the age play a role?
+
+\newpage
+
+# EDA of myocardial infarction complications data 
+
+Before the data is being visualized, the data is loaded first. After the data is loaded, the data can be used.
+```{r load-data, message=FALSE}
+# Defining the data file and reading the file
 data_file <- "data/Myocardial_infarction_complications_Database.csv"
 Myocardial <- read.table(data_file, sep=",", header = TRUE, na.strings = "?")
-str(Myocardial[1:5])
-head(Myocardial)
 
+# Changing the variables names for the column LET_IS (Letsel) 
+Myocardial <- Myocardial %>%
+  mutate(LET_IS = factor(LET_IS, labels = c("unknown", "cardiogenic shock", "pulmonary edema", "myocardial rupture", "progress of congestive heart failure", "thromboembolism", "asystole", "ventricular fibrillation"), levels = c(0, 1, 2, 3, 4, 5, 6, 7)))
+
+# Show the data
+str(Myocardial)
 ```
-The codebook for this dataset can be find as a pdf. Because the data set is large it is difficult to make a codebook from it.
+```{r}
+# Shows the first 6 rows of the myocardial infraction data set
+head(Myocardial)
+```
 
 Loading the myocardial as a table to view all the data en giving the summary of the data set.
 ```{r}
-Myocardial <- as.tibble(Myocardial)
-#This gives the summary of the data set of Myocardial infraction
+# Gives the summary of the data set of Myocardial infraction
 summary(Myocardial)
 ```
-Here we are going to make a table, to see if there are many missing values in this data and giving the precentage of the missing values in data set.
-```{r}
-library(questionr)
+The results of the summary shows that there are some columns that hava a lot of missing value's. And that the most of the columns consist of the numbers 0 and 1. Expect for a few other columns, that gives information about the content of the blood and ecg content. 
+
+
+To see if there are missing values in this data and giving the precentage of the missing values in data set.
+```{r Table_NA}
 # All missing values of the data set
-freq.na(Myocardial)
-# Variables with the most numbers of missing values
-head(freq.na(Myocardial))
+kable(colSums(is.na(Myocardial)), col.names = "Counts of NA's", caption = "The counts of NA's of each column")
 ```
-Looking at the table you can see that the missing values are in examinations which were needed for a patient to see their state at the time of admission. Which explains why there is many missing values, because it doesn't apply for every patient. 
+Looking at the table \ref{tab:Table_NA} it shows that the missing values are in examinations which were needed for a patient to see their state at the time of admission. Which explains why there is many missing values, because it doesn't apply for every patient. 
 
-Seeing the results of the table, you can conclude that the missing values could be removed from the data set. Because the missing values do not add more information to the analysis. 
+Seeing the results of the table \ref{tab:Table_NA}, it can be concluded that the missing values could be removed from the data set. Because the missing values do not add more information to the analysis. 
 
+## Visualizing the data set of myocardial infraction
 
-The selected data is the blood pressures of the patients that has arrived. In this boxplot you will be able to see which age has the higher blood pressure. 
-```{r}
+The selected data is the blood pressures of the patients that has arrived. This violin plot shows the ages which has a higher blood pressure whether it is systolic or diastolic.
+```{r, fig.cap="\\label{fig:blood_pressure}Blood pressures of patients according to the ECT (Emergency cardiology team) and ICU (Intensive care unit)"}
 tmp <- Myocardial %>% select(2, 35:38) %>% drop_na()
 
-p1 <- ggplot(tmp, mapping = aes(x = AGE, y = c(S_AD_KBRIG))) +
-  geom_boxplot() +
-  geom_jitter(width = 0.2, height = 0.1, alpha = 0.4, color = "red") +
-  ylab("systolic blood pressures of the patients according to the Emergency cardiology team") +
-  xlab("Ages of the patients")
-p2 <- ggplot(tmp, mapping = aes(x = AGE, y = c(D_AD_KBRIG))) +
-  geom_boxplot() +
-  geom_jitter(width = 0.2, height = 0.1, alpha = 0.4, color = "red") +
-  ylab("diastolic blood pressures of the patients according to the Emergency cardiology team") +
-  xlab("Ages of the patients")
-p3 <- ggplot(tmp, mapping = aes(x = AGE, y = c(S_AD_ORIT))) +
-  geom_boxplot() +
-  geom_jitter(width = 0.2, height = 0.1, alpha = 0.4, color = "red") +
-  ylab("systolic blood pressures of the patients according to the intensice care unit") +
-  xlab("Ages of the patients")
-p4 <- ggplot(tmp, mapping = aes(x = AGE, y = c(S_AD_ORIT))) +
-  geom_boxplot() +
-  geom_jitter(width = 0.2, height = 0.1, alpha = 0.4, color = "red") +
-  ylab("diastolic blood pressures of the patients according to the intensice care unit") +
-  xlab("Ages of the patients")
+df1 <- data.frame(x=tmp$AGE, y=tmp$S_AD_KBRIG)
+df2 <- data.frame(x=tmp$AGE, y=tmp$D_AD_KBRIG)
+df3 <- data.frame(x=tmp$AGE, y=tmp$S_AD_ORIT)
+df4 <- data.frame(x=tmp$AGE, y=tmp$D_AD_ORIT)
 
-grid.arrange(p1, p2, p3, p4, nrow = 1)
+ggplot(df1, aes(x,y)) +
+  geom_violin(aes(color="Systolic blood pressure of ECT")) +
+  geom_jitter(aes(color="Systolic blood pressure of ECT"), 
+              alpha=0.4) +
+  geom_violin(data=df2,aes(color="Diastolic blood pressure of ECT")) +
+  geom_jitter(aes(color="Diastolic blood pressure of ECT"),
+              alpha=0.4) +
+  geom_violin(data=df3,aes(color="Systolic blood pressure of ICU")) +
+   geom_jitter(aes(color="Systolic blood pressure of ICU"),
+              alpha=0.4) +
+  geom_violin(data=df4, aes(color="Diastolic blood pressure of ICU")) +
+   geom_jitter(aes(color="Diastolic blood pressure of ICU"),
+              alpha=0.4) +
+  xlab("Ages of patients (in years)") +
+  ylab("blood pressures (in mmHg)") +
+  labs(color="legend")
+  
+
 
 ```
-In this results you could see that there are a few outliers in this selected data set. The distribution of the selected is expected, because the most of the people could have a normal blood pressure. But it could be that there are a few exceptions, which is expected in this data set.
 
-Making a bar chart of the time elapsed from the beginning of the attack of CHD to the hospital of all the patients. To see which
-```{r}
+Figure \ref{fig:blood_pressure} shows that there are a few outliers in this selected data set. The distribution is expected because most of the patients could have normal blood pressure. Most of the patients have normal diastolic blood pressure in this case, but the patients who measured the systolic blood pressure have a higher mmHg. This actively demonstrates that their heart pushed a lot of blood out. So when they have higher systolic blood pressure for an extended period, it can increase your risk of strokes and heart disease. 
+
+
+Making a bar chart to check if the time elapsed from the beginning of the attack of CHD to the hospital of all the patients relates to the risk of strokes or heart diseases. 
+```{r, echo=FALSE, fig.cap="\\label{fig:time}Time elapsed grom the beginning of the attack of CHD to the hospital"}
 ggplot(Myocardial, aes(x=factor(TIME_B_S))) +
   geom_bar(width = 0.7, fill = "orchid4") +
   xlab("Time elapsed from the start of the attack to the hospital") +
   ylab("Numbers of patients")
 ```
-With the selected data you could see that the the time elapsed is higher at the number 2. Number 2 is the time elapsed of 2-4 hours. Which could be conculded that the time elapsed is mostly around the time of 2 tot 4 hours for most of the patients that has been admitted to the hospital. 
 
-Data transformation of the sex attribute, to view the data better.
+This bar chart \ref{fig:time} shows that the the time elapsed is higher at the number 2. Number 2 is the time elapsed of 2-4 hours. Which could be concluded that the time elapsed is mostly around the time of 2 tot 4 hours for most of the patients that has been admitted to the hospital. 
+
+Mutating the data of the sex attribute to show a better figure.
 ```{r}
+#Mutating the sex attribute to make it readable.
 Myocardial_SEX <- Myocardial %>%
   mutate(SEX = factor(SEX, labels = c("Female", "Male"), levels = c(0, 1)))
 
 ```
 
-```{r}
-SB_EC <- ggplot(Myocardial_SEX, aes(x= AGE, y=S_AD_KBRIG)) + geom_point(aes(color = SEX))
-DB_EC <- ggplot(Myocardial_SEX, aes(x=AGE, y=D_AD_KBRIG)) + geom_point(aes(color = SEX))
-DB_EC
-SB_EC
+```{r, fig.cap="\\label{fig:ds_bloodpressure}Blood pressure according to the Emergency Cardiology Team (EC) and Intensive Care Unit (IC) with the variables sex and ages"}
+SB_EC <- ggplot(Myocardial_SEX, aes(x= S_AD_KBRIG, y=AGE)) + geom_jitter(aes(color = SEX), alpha = 0.3) +
+  xlab("Systolic bloodpressure\naccording to EC")
+DB_EC <- ggplot(Myocardial_SEX, aes(x=D_AD_KBRIG, y=AGE)) + geom_jitter(aes(color = SEX), alpha = 0.3) +
+  xlab("Diastolic bloodpressure\naccording to EC")
+SB_IC <- ggplot(Myocardial_SEX, aes(x=S_AD_ORIT, y=AGE)) + geom_jitter(aes(color = SEX), alpha = 0.3) +
+  xlab("Systolic bloodpressure\naccording to IC")
+DB_IC <- ggplot(Myocardial_SEX, aes(x=D_AD_ORIT, y=AGE)) + geom_jitter(aes(color = SEX), alpha = 0.3) +
+  xlab("Diastolic bloodpressure\naccording to IC")
+
+plot_grid(SB_EC, DB_EC, SB_IC, DB_IC, labels = c("A", "B", "C", "D"), label_size = 12)
+
 ```
 
-Here we going to see the ages of the patients who had a ECG rhythm at the time of admission to the hospital of a sinus with a heart rate of below 60 to above 90.
-```{r}
-#rithm_ecg_01 is a heart rate 60-90.
-#ritm_ecg_07 is heart rate above 90.
-#ritm_ecg_08 is heart rate below 60.
-#The heart rate 0 means no and 1 means yes in these datasets.
+Figure \ref{ds_bloodpressure} shows that most of the males in comparison to the females were younger than 60. And most of the females where older than 60. It could be concluded that the males have more risk to have a strokes or heart diseased at a younger age. 
 
-# Making a subset of the ecg to make a scatter plot with it.
+
+Before making a figure to show the ages of the patients who had a ECG rhythm at the time of admission to the hospital of a sinus with a heart rate of below 60 to above 90. The data set has to be selected and mutated, to understand the distribution better.
+
+Making a range of the heart rate with the ages of the patients to see if the patients fell in the category of the heart rate below 60, between 60 and 60 and above 90.
+```{r}
+# Making a subset of the ecg to make a violin plot with it.
 Myocardial.ECG <- Myocardial %>%
   select("AGE", "ritm_ecg_p_01", "ritm_ecg_p_07", "ritm_ecg_p_08") %>%
   pivot_longer(-AGE, names_to = "sinus_with_a_heart_rate", values_to = "heart_rate") %>% drop_na()
 
+# Mutating the heart rate to yes and no, to understand it better
+Myocardial.ECG <- Myocardial.ECG %>%
+  mutate(heart_rate = factor(heart_rate, labels = c("No","Yes"), levels = c(0, 1)))
+
 head(Myocardial.ECG)
 ```
-Making a scatter plot with the ECG data of the patients at the time of admission to the hospital
-```{r}
-ggplot(Myocardial.ECG, aes(sinus_with_a_heart_rate, AGE, color = heart_rate)) + geom_point() +
-  ggtitle("ECG rhythm at the time of admission to hospital") +
-  ylab("Ages of the patients") +
-  xlab("ECG rhythm")
+
+This figure will show the distribution of the myocardial infraction heart rate data set. 
+This violin plot will show the distribution of the myocardial infraction heart rate data set of the patients at the time of admission to the hospital.
+```{r, fig.cap="\\label{fig:ecg}ECG rhythm at the time of admission to the hospital"}
+
+# violin plot of the ECG rhythm
+ggplot(Myocardial.ECG, aes(sinus_with_a_heart_rate, AGE, col = heart_rate)) + geom_violin() +
+  geom_jitter(alpha = 0.1) +
+  scale_x_discrete(labels = c('heart rate 60-90','heart rate above 90','heart rate above below 60')) +
+  ylab("Ages of the patients (in years)") +
+  xlab("ECG rhythm (in sinus)")
+
 ```
-In these datasets, you could conclude that there were no patients that had a heart rhythm below 60 at the time of admission to the hospital.
 
-Making a correlation matrix to make a heatmap to see the correlation of the variables.
-```{r}
-#correlation matrix
-cor_matrix <- cor(Myocardial)
-head(cor_matrix <- as.tibble(cor_matrix))
+Figure \ref{fig:ecg} shows that most of the patients didn't have a heart rate below 60 at the time of admission to the hospital. And it shows that most of the patients had a normal heart rhythm at the time of admission, so it could mean they don't have a problem with their heart rate. Patients with a heart rate above 90 should be observed because it could lead to heart diseases if they have an irregular heart rate.
 
-cor_matrix_long <- gather(cor_matrix, key = "method", value = "correlation")
+### Clustering of the myocardial infraction data set
 
-# Making a heatmap
-ggplot(data = cor_matrix_long, aes(x=method, y=1, fill=correlation)) + 
-    geom_tile() + 
-    labs(x=NULL, y=NULL) +
-    scale_fill_gradient(high = "blue", low = "white" ) +
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.8, hjust=1)) 
+Making a PCA to show the clustering of the data set.
+```{r, fig.cap="\\label{fig:myo_pca}PCA of the classes that were important to see the cluserting of the data were taken and set in a prcomp we could see the variance of our PCA."}
+# Selecting the data to make a PCA
+rows <- nrow(Myocardial)
+myo <- Myocardial %>%
+select(where(function(x){sum(is.na(x))/rows < 0.3})) %>%
+select(-ID) %>%
+select(where(function(x){sum(is.infinite(x)) == 0})) %>%
+select(where(function(x){(sum(x == 0, na.rm=T) / rows) < 0.8})) %>%
+drop_na()
+
+myo_pca <- prcomp(as.matrix(myo),
+scale. = T,
+center = T)
+# Plotting the pca
+plot(myo_pca, type = "l")
 ```
-Making a PCA
+
+This figure \ref{fig:myo_pca} shows the variances of the PCA and shows that it is decreasing.
+
 ```{r}
-library(ggbiplot)
-
-myo_pca <- data.frame(t(na.omit(t(Myocardial[113:124]))))
-myo.pca <- prcomp(myo_pca, retx=TRUE)
-head(myo.pca)
-
-ggbiplot(myo.pca, obs.scale = 1, var.scale = 1, ellipse = FALSE,
-         circle = TRUE) +
-         theme(legend.direction = 'horizontal', legend.position = 'top')
+#shows the summary of PCA of the myocardial infraction
+summary(myo_pca)
 ```
+
+This summary of PCA shows the measures of the components. It shows the standard deviation, the proportion of the variance and the cumulative proportion. The proportion of the variance indicates that the data set has a low percentage of variability. This could be seen in the data set. This could be because most of the columns have only two variables, yes or no, in numeric levels, which results in low variability. 
+
+Making a PCA plot with the information of the PCA variances.
+```{r, fig.cap="\\label{fig:pca}PCA plot of the myocardial of each complications with taking the group klasses of the causes of the myocardial infraction."}
+
+g <- ggbiplot(myo_pca, obs.scale = 1, var.scale = 1, ellipse = FALSE,
+circle = TRUE)
+g <- g + scale_color_discrete(name = '') 
+g <- g + theme(legend.direction = 'horizontal',
+legend.position = 'top')
+g
+```
+
+Figure \ref{fig:pca} shows a scatter plot of the variances of all the component.  IT shows a variation of each principal component of the data where the x-axis shows the number of components and the y-axis shows the amount of variations. But \ref{fig:pca} PC1 explains only 7.7% variations and PC2 explains only 10% variations. So this actively demonstrates that it doesn't show all of the variances of the myocardial infraction data.
+
+
+# Cleaning data
+
+
+To clean the data set, the column with NA's and columns that doesn't help with the further research.
+```{r}
+# Removing columns that contains NA's and columns that doesn't give more information to the data set.
+Myocardial_clean <- Myocardial[, -c(1, 8, 35, 36, 84, 93, 94, 97, 98, 100, 101, 103, 104, 113:123)]
+```
+
+Before the cleaned data is used for Weka, the labels of the gender column has to be changed to Female and Male to make the data set understandable.
+```{r}
+Myocardial_clean <- Myocardial_clean %>%
+  mutate(SEX = factor(SEX, labels = c("Female", "Male"), levels = c(0, 1)))
+```
+
+The head of the cleaned data to see the overview of it.
+```{r}
+head(Myocardial_clean)
+```
+
+
+# Determine quality metrics
+
+## Weka
+
+Creating a new csv file of the cleaned data set to use in weka.
+```{r}
+# Creating a csv file for weka
+write.csv(Myocardial_clean, "./Data/Myocardial.csv", row.names = FALSE, na = "")
+```
+
+In weka we are going run a few algorithm and see which one does a good job on the data with the accuracy. Because the class has 8 variables it has to be grouped in two groups. Which I am going to make one which contains the unknown which could mean that there were no causes of the tests. 
+
+## Investigating performance of machine learning algorithms
+
+```{r}
+experiment <- read.table("./Data/experiment.csv", sep=",", header = TRUE, na.strings = "?")
+experiment
+```
+
+# Exploring Meta-learners and optimize a selecton of algorithms
+
+## ROC and learning curve analysis
+
+
+
+\newpage
+\begin{thebibliography}{9}
+\bibitem{hopkins}
+Johns Hopkins medicine: \textit{Heart attack}, Conditions and Diseases, Retrieved from https://www.hopkinsmedicine.org/health/conditions-and-diseases/heart-attack on 4-10-2021
+
+\bibitem{MLR}
+Machine learning repository: \textit{Machine Learning}, Myocardial infraction complications data set, Retrieved from https://archive.ics.uci.edu/ml/datasets/Myocardial+infarction+complications on 09-12-2020
+
+\end{thebibliography}
 
