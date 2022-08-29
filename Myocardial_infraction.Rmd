@@ -5,6 +5,7 @@ date: " `r Sys.Date()` "
 header-includes:
    - \usepackage{longtable}
    - \usepackage{hyperref}
+   - \usepackage{float}
 output:
     pdf_document:
       number_sections: yes
@@ -12,7 +13,29 @@ output:
       keep_tex: yes
 linkcolor: blue  
 ---
+\vfill
+\mbox{}
+\begin{flushright}
+Akastia Christo\linebreak
+390250\linebreak
+BFV3\linebreak
+`r Sys.Date()` \linebreak
+Michiel Noback\linebreak 
+\end{flushright}
+\pagenumbering{gobble}
 
+\newpage
+\mbox{}
+\pagenumbering{gobble}
+
+\newpage
+\begin{center}
+{\LARGE Myocardial Infraction\linebreak}
+Analysis of myocardial infraction and using machine learning
+\end{center}
+
+\vfill
+\mbox{}
 \begin{flushright}
 Student: Akastia Christo\linebreak
 Bio-informatica\linebreak
@@ -56,6 +79,7 @@ knitr::opts_chunk$set(cache = TRUE)
 ```
 \pagenumbering{arabic}
 \newpage
+
 # Introduction
 
 Myocardial infraction (MI), is known as heart attacks happens when one or more areas of the heart mucles do not get enough oxygen which can happen when the blood flow of the heart muscle is blocked \cite{hopkins}
@@ -66,8 +90,7 @@ Acute MI is associated with high mortality in the first year after it. The incid
 
 ## Research question
 
-The goals for this research is to answer the question, can you predict the complications of the patients after the third day of the admission based on the admission period using the machine learning? And which complications did lead to worsening of the MI and does the age play a role?
-
+The goal for this research is to answer the question, can you predict the complications of the patients after the third day of the admission based on the admission period and patients data using machine learning? 
 
 # Materials & Methods
 
@@ -77,7 +100,7 @@ The data set that is used in this research contains information about the myocar
 
 The codebook for this data set can be found as a pdf and is available in the repo. Because the data set is large it is difficult to make a codebook from it. 
 
-For the analysis of the breast cancer dataset, the software tool RStudio Version 1.4.1717 \cite{RStudio} is used. RStudio is an environment for using statistical computing and graphic, that uses the R programming language Version 4.0.4. In RStudio there are a few libraries that R used throughout this project these are listed in table \ref{tab:libraries} and the appendix.
+For the analysis of the myocardial infraction dataset, the software tool RStudio Version 1.4.1717 \cite{RStudio} is used. RStudio is an environment for using statistical computing and graphic, that uses the R programming language Version 4.0.4. In RStudio there are a few libraries that R used throughout this project these are listed in table \ref{tab:libraries} and the appendix.
 
 \begin{longtable}[l]{l|l|l}
 \caption{Libraries} \\ \hline
@@ -96,10 +119,24 @@ $\text{ggbiplot}$ & $\text{0.55}$  &$\text{Biplot for Principal Components}$\\ \
 $\text{cowplot}$ & $\text{1.1.1}$ &$\text{Arrange multiple plots into a grid}$\\ \hline
 \end{longtable}
 
+To analyse and create classifiers for a model that will predict the consequences of myocardial infarction, machine learning is applied. Weka Version 3.85 is the programme used to accomplish this.\cite{Weka} Weka is open-source software that offers tools for processing data and implementing various machine learning algorithms into practise.
+
+After creating and saving the best model. Java uses the model to build a Java wrapper. Java wrapper is produced using IntelliJ IDEA Version 2021.2.1 software. \cite{intellij} A development environment for creating Java-based applications, IntelliJ makes use of the JDK. It contains resources for developing and evaluating programmes written in Java programming language that operate on the Java platform.
+
+
+## Methods
+
+In RStudio the Exploratory Data Analysis (EDA) is first performed using R. This was accomplished via visualizing, transforming, and modeling the data. The myocardial infraction data set's variation, distribution, missing values, and clustering are displayed by creating numerous plots in R using the libraries provided in table \ref{tab}. The libraries ggplot2, pheatmap, and ggbiplot were used to produce numerous plots, and kableExtra was used to produce tables. After visualizing which data is relevant and which isn't, the data had been cleaned. The cleaned myocardial infraction data is used for machine learning in Weka.
+To find the best model to categorise the instances, there were multiple algorithms applied and evaluated with 10-fold cross-validation in Weka. This was done with the explorer and experimenter in Weka. The best model is kept, and a Java wrapper is made using this model. The myocardial infraction data set and a new data set with the class in unknown are read by the Java wrapper generated in IntelliJ using Java. The programme can classify new instances that are defined in the data set with unidentified classes with the aid of the model.
+
+Throughout this paper, the term "False-Positive" is used to refer to occurrences that were mistakenly classified as Unknown when, in fact, they are Lethal Cause, while "False-Negative" is used to refer to situations that were incorrectly labelled as Lethal cause.
+
+Code and data for data analysis and cleaning data done with R and Weka is avaible at https://github.com/akastia/Thema09
+Code and data for the Java wrapper is available at https://github.com/akastia/Wrapper
 
 \newpage
 # Results
-Here we are going to show you the results of the data set Myocardial Infraction
+Here we are going to show you the results of the data set Myocardial Infraction.
 
 ```{r load-data, message=FALSE, echo=FALSE}
 # Define the file
@@ -111,10 +148,10 @@ Myocardial <- read.table(data_file, sep=",", header = TRUE, na.strings = "?")
 # Head of the myocardial infraction data
 head(Myocardial)
 
-# Make a table
-Myocardial <- as_tibble(Myocardial)
 ```
+
 The selected data is the blood pressures of the patients that has arrived. This violin plot shows the ages which has a higher blood pressure whether it is systolic or diastolic.
+
 ```{r, warning=FALSE, fig.cap="\\label{fig:blood_pressure}Blood pressures of patients according to the ECT (Emergency cardiology team) and ICU (Intensive care unit)", out.height='60%', out.width='75%'}
 tmp <- Myocardial %>% select(2, 35:38) %>% drop_na()
 
@@ -161,7 +198,7 @@ Myocardial_SEX <- Myocardial %>%
 ```
 
 This figure shows the blood pressure with different sex and ages to see if there any relation between the blood pressure and the sex and ages.
-```{r, warning=FALSE, fig.cap="\\label{fig:ds_bloodpressure} Blood pressure according to the Emergency Cardiology Team (EC) and Intensive Care Unit (IC) with the variables sex and ages", out.width='75%'}
+```{r, warning=FALSE, message=FALSE, fig.cap="\\label{fig:ds_bloodpressure} Blood pressure according to the Emergency Cardiology Team (EC) and Intensive Care Unit (IC) with the variables sex and ages", out.width='75%'}
 # Plots the blood pressures
 SB_EC <- ggplot(Myocardial_SEX, aes(x= S_AD_KBRIG, y=AGE)) +
   geom_jitter(aes(color = SEX), alpha = 0.3) +
@@ -177,12 +214,12 @@ DB_IC <- ggplot(Myocardial_SEX, aes(x=D_AD_ORIT, y=AGE)) +
   xlab("Diastolic bloodpressure\naccording to IC")
 
 # Combine the plots
-plot_grid(SB_EC, DB_EC, SB_IC, DB_IC, labels = c("A", "B", "C", "D"),
+plot_grid(SB_EC, DB_EC, SB_IC, DB_IC, 
+          labels = c("A", "B", "C", "D"),
           label_size = 12)
 ```
 
 Figure \ref{fig:ds_bloodpressure} shows that most of the males in comparison to the females were younger than 60. And most of the females where older than 60. It could be concluded that the males have more risk to have a strokes or heart diseased at a younger age. 
-
 
 ```{r, warning=FALSE, echo=FALSE}
 # Making a subset of the ecg to make a violin plot with it.
@@ -358,13 +395,47 @@ The ROC curve of SimpleLogistic is shown in figure \ref{fig:roc_curve}B, and the
 
 \pagebreak
 
+```{r, fig.cap="\\label{fig:wrapper}Result of the classification with the Java wrapper.", out.width="60%"}
+# Loads the result image
 
+knitr::include_graphics("images/result.png")
+
+```
+
+
+The Java wrapper is modeled after the best algorithm, RandomForest. The section on materials and methods includes a link to the code. The output of the program is seen in image \ref{fig:wrapper}. As shown in the image the ID is not given, because it didn't add any value for the results. So the instances shows the AGE and SEX of the patient. There are 6 instances that predicted a lethal cause and 1 instance unknown. As you can see in the image \ref{fig:wrapper} the 6 lethal causes are asystole, progress of congestive heart failure and myocardial rupture. And out of the 7 instances only 2 were female and the other 5 instances were male. 
 
 \newpage
-# Discussion
+# Discussion & conclusion
 
+## Discussion
+In a quick overview reveals that the database contains 1700 records (patients), 111 input features and 12 complications. In the database there contains 7.6% of missing values.
+The values have variations between properties. Which can be seen when comparing the results of the figure \ref{fig:blood_pressure} until figure \ref{fig:pca}. The figures demonstrate that the values are required, although there are numerous input characteristics that provided the same information or that the values were not required for this data set. As a result, this suggested that certain features were removed from the dataset.
 
-# Conclusion
+In general is the data of myocardial infraction a good quality. This is because all of the values associated with a property have almost same variation and distribution per property.
+Eight different classification methods are used on the myocardial infraction data as shown in table \ref{tab:classifiers}. Here, it can be seen that Naive Bayes has the lowest accuracy. This is due to the Naive Bayes algorithm being less accurate because it makes the assumption that all features are independent, which is not true in real life.
+Looking at the table \ref{tab:classifiers} you could see that there are a few who has a higher accuracy compared to the others. OneR has 88.6% accuracy, RandomForest has 86.1% accuracy and SimpleLogistic has 86.2% accuracy. Because the data is about diseases the RandomForest and SimpleLogistic is a good algorithm to use even though the OneR scored better in accuracy. The reason for this is that they have a good accuracy and for this data set a tree classifiers are a good algorithm to make a decision as if the patient is at risk. And SimpleLogistic is a good classifier to build a linear logistic regression model, so with this model it can help make a best fitting logistic model to use for deciding which lethal cause a patient could have. RandomForest has the best value for FP, because we do not  want people who are actually classified as a lethal cause of myocardial infraction to be predicted with the unknown, as in other diseases or doesn't have any diseases. These algorithms are used with the CostSensitiveClassifier with different values for the costMatrix as shown in table \ref{tab:cost_sensitive}. In table \ref{tab:cost_sensitive} it shows that the RandomForest with the cost adapted to 2.0 the accuracy increases by approximately 0.4, but when the cost is increased to 3.0 and 4.0, the accuracy decreases. But with the algorithm SimpleLogistic, the accuracy is the same for the cost with 1.0 and 2.0, but like the RandomForest, the accuracy decreases. The ROC curve from these two algorithms is shown in figure \ref{fig:roc_curve}. These curves are almost the same, but RandomForest has more dots and the curve runs more at a 90 degrees angle which shows a better situation. Thus RandomForest is the best algorithm.
+
+The classification with machine learning doe with the Java wrapper as seen in image \ref{fig:wrapper} classifies the instances based on the properties that have been given. With the information of the patients as blood pressures, ECG rhythms and admission periods etc. There are a lot of values that decide if the patient classification is unknown or a lethal cause.
+
+## conclusion
+
+As discussed there were a lot of properties removed, because of the same results and not adding any information to the data. So it lowered the variation and distrubtion of the data. From the machine learning done with Weka had RandomForest the best model with highest accuracy. This model is used for the Java wrapper which can classify new instances as seen in image \ref{fig:wrapper}.
+
+The goal for this research was to answer the question, can you predict the complications of the patients after the third day of the admission based on the admission period and patients data using machine learning? As seen in image \ref{fig:wrapper} that is predicts the myocardial infraction reliably be predicted with the given information of the patient. It can forecast the class, but how dependable it is must be proven. That much depends on if there are further combinations or additional properties that might have a more significant impact on the class.
+
+Further research is RandomForest good an reliable to use for doctors instead of J48 the most widely used machine learning algorithm.\cite{J48}
+
+The data set had a lot of input features with 12 complications. Which was hard to find what to use to predict. Additionally, there was not much information available regarding the original data and subject. This could be due to the fact that the data only dates back to 1992–1995, however the data is quite organised and clear, so there was enough of patient information.
+
+### Project proposl for minor
+
+*Application Design*
+
+The goal is to create an application that classifies new instances of the myocardial infraction reliably and fast. The classification will be done with an accurate model. This application should have an outcome of the class which is predicted and which of the patients have higher risk based of the class prediction. So it if unknown it should give an overview of the features that have probably influence on the class prediction. And for lethal cause it should give values that might indicate that it is a lethal cause, and categorise the indication which one of the lethal cause it is and the probability of the risk, so it could be decided if the patient have to be admitted immediately. The technology where this application can be used is on a desktop, because companies, hospitals and clinics mainly use computers to keep track of all their patients. This application targets hospitals because myocardial infraction is a disease and this should give the ability to help doctors with the classification if the information that is given is a lethal cause of myocardial or unknown. So that the doctors could find in time if the patients have another disease or a lethal cause of myocardial.
+The application should give after the input, if it is unknown or if it is a lethal cause of myocardial infraction. If it is unknown, it should give the features if it is beginning of a lethal cause or it is another disease that looks like a myocardial infraction. And if it is lethal cause it should give the features and the which one of the lethal cause it is. 
+The input is an instance with the features and after running the application it gives case it is with  some explanation on the screen with the overview. 
+
 
 \newpage
 \begin{thebibliography}{9}
@@ -378,7 +449,7 @@ Machine learning repository: \textit{Machine Learning}, Myocardial infraction co
 RStudio: \textit{Download RStudio}, Download the RStudio IDE, Retrieved from https://www.rstudio.com/products/rstudio/download/ on 15-11-2021
 
 \bibitem{Weka}
-Weka: \textit{Download Weka}, Downloading and installing Weka, Retrieved from https://waikato.github.io/weka-wiki/ then Downm,              loading and installing Weka on 15-11-2021
+Weka: \textit{Download Weka}, Downloading and installing Weka, Retrieved from https://waikato.github.io/weka-wiki/ then Downm, loading and installing Weka on 15-11-2021
 
 \bibitem{intellij}
 IntelliJ IDEA: \textit{Download IntelliJ}, Download IntelliJ IDEA, Retrieved from https://www.jetbrains.com/idea/download/ on 19-11-2021
@@ -398,6 +469,7 @@ Retrieved from https://medium.com/@nilimakhanna1/j48-classification-c4-5-algorit
 
 
 \newpage
-# Appendix
-````{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
+\addcontentsline{toc}{section}{Appendix}
+\section*{Appendix}
+```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
 ```
