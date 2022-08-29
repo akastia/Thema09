@@ -1,0 +1,5 @@
+Classifier;Evaluator;Search;Accuracy;TP;FP;FN;TN
+RandomForest;CfsSubsetEval;RankSearch;86.0588;1425;230;4;41
+RandomForest;CfsSubsetEval;BestFirst;86.3529;1426;227;3;44
+SimpleLogistic;CfsSubsetEval;RankSearch;86.1176;1422;224;7;47
+SimpleLogistic;CfsSubsetEval;BestFirst;86.2941;1424;222;5;49

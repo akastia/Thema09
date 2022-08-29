@@ -1,0 +1,9 @@
+﻿Algorithm;Classifiers;MetaClassifier;CombinationRule;Accuracy;TP;FP;FN;TN
+Bagging;RandomForest;N.A;N.A;85.8235;1428;240;1;31
+Bagging;SimpleLogistic;N.A;N.A;84.9412;1395;186;34;85
+Boosting;RandomForest;N.A;N.A;86.3529;1425;218;4;53
+Boosting;SimpleLogistic;N.A;N.A;86.2353;1424;223;5;48
+Stacking;RandomForest & SimpleLogistic;RandomForest;N.A;86.2941;1418;210;11;61
+Stacking;SimpleLogistic & RandomForest;SimpleLogistic;N.A;86.6471;1428;221;1;50
+Vote;RandomForest & SimpleLogistic;N.A;Average of Probabilities;86.2353;1425;228;4;43
+Vote;RandomForest & SimpleLogistic;N.A;Majority Voting;86.2353;1425;228;4;43

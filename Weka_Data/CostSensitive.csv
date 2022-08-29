@@ -1,0 +1,9 @@
+﻿Classifier;Accuracy;costMatrix;TP;FP;FN;TN
+SimpleLogistic;86.2353;1;1424;223;5;48
+SimpleLogistic;86.2353;2;1420;216;9;55
+SimpleLogistic;85.5882;3;1407;211;19;60 
+SimpleLogistic;82.4118;4;1349;179;80;92
+RandomForest;86.0588;1;1428;236;1;35
+RandomForest;86.4706;2;1421;203;8;68
+RandomForest;84.6471;3;1358;129;71;142
+RandomForest;80.2941;4;1270;88;159;183
