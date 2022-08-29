@@ -1,0 +1,403 @@
+---
+title: "Myocardial infarction complications"
+author: "Akastia Christo"
+date: " `r Sys.Date()` "
+header-includes:
+   - \usepackage{longtable}
+   - \usepackage{hyperref}
+output:
+    pdf_document:
+      number_sections: yes
+      toc: no
+      keep_tex: yes
+linkcolor: blue  
+---
+
+\begin{flushright}
+Student: Akastia Christo\linebreak
+Bio-informatica\linebreak
+Student number: 390250\linebreak
+Life science en technology\linebreak
+Lecturer: Micheal Noback\linebreak 
+Date: `r Sys.Date()` \linebreak
+\end{flushright}
+
+\newpage
+\thispagestyle{empty}
+\mbox{}
+
+\tableofcontents
+
+\newpage
+
+# Abbreviations and symbols
+
+Abbreviations                               |Symbols
+--------------------------------------------|----
+Myocardial Infractions                      | MI
+Coronary Heart Disease                      | CHD
+Electrocardiogram                           | ECG
+Exploratory Data Analysis                   | EDA
+Principal Component Analysis                | PCA
+True Positive                               | TP 
+False Positive                              | FP 
+True Negative                               | TN 
+False Negative                              | FN
+True Positive Rate                          | TPR
+False Positive Rate                         | FPR
+Receiver Operating Characteristics          | ROC
+Area Under The Curve                        | AUC
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+knitr::opts_chunk$set(cache = TRUE)
+```
+\pagenumbering{arabic}
+\newpage
+# Introduction
+
+Myocardial infraction (MI), is known as heart attacks happens when one or more areas of the heart mucles do not get enough oxygen which can happen when the blood flow of the heart muscle is blocked \cite{hopkins}
+MI is one of the most challenging problems of the modern medicine. 
+Because the course of disease in patients with MI differs each patient. MI can happen with or without complications that do not affect the long-term prognosis. Approximately half of the patients in the acture and subactute period experience complication that results in worsening of the disease or death. Even an experienced specialist may not be able to predict the development of these complications.
+Acute MI is associated with high mortality in the first year after it. The incidence of MI remains high in all countries. This is especially true for the urban population of highly developed countries, which is exposed to chronic stress factors, irregular and not always balanced nutrition. \cite{MLR}
+
+
+## Research question
+
+The goals for this research is to answer the question, can you predict the complications of the patients after the third day of the admission based on the admission period using the machine learning? And which complications did lead to worsening of the MI and does the age play a role?
+
+
+# Materials & Methods
+
+## Materials
+
+The data set that is used in this research contains information about the myocardial infarction complications database was collected in the Krasnoyarsk Interdistrict Clinical Hospital No20 named after I. S. Berzon (Russia) in 1992-1995. The database contains 1700 records (patients), 111 input features and 12 complications. In the database there contains 7.6% of missing values.
+
+The codebook for this data set can be found as a pdf and is available in the repo. Because the data set is large it is difficult to make a codebook from it. 
+
+For the analysis of the breast cancer dataset, the software tool RStudio Version 1.4.1717 \cite{RStudio} is used. RStudio is an environment for using statistical computing and graphic, that uses the R programming language Version 4.0.4. In RStudio there are a few libraries that R used throughout this project these are listed in table \ref{tab:libraries} and the appendix.
+
+\begin{longtable}[l]{l|l|l}
+\caption{Libraries} \\ \hline
+\label{tab:libraries} \\ \hline
+$\textbf{Library}$ &$\textbf{Version}$ &$\textbf{Goal}$\\ \hline
+\endhead
+$\text{utils}$ & $\text{4.0.4}$  &$\text{Reads and writes files in R}$\\ \hline
+$\text{dplyr}$ & $\text{1.0.7}$  &$\text{Provides data manipulation}$\\ \hline
+$\text{tidyr}$ & $\text{1.1.3}$  &$\text{Tool for changing shape of a dataset}$\\ \hline
+$\text{kableExtra}$ & $\text{1.3.4}$  &$\text{Build common complex tables}$\\ \hline
+$\text{ggplot2}$ & $\text{3.3.5}$  &$\text{System for creating graphics}$\\ \hline
+$\text{stats}$ & $\text{4.0.4}$  &$\text{Functions for statistical calculations}$\\ \hline
+$\text{pheatmap}$ & $\text{1.0.12}$ &$\text{Creates heatmaps}$\\ \hline
+$\text{ggpubr}$ & $\text{0.4.0}$  &$\text{Some easy-to-use functions for creating and customizing ‘ggplot2’}$\\ \hline
+$\text{ggbiplot}$ & $\text{0.55}$  &$\text{Biplot for Principal Components}$\\ \hline
+$\text{cowplot}$ & $\text{1.1.1}$ &$\text{Arrange multiple plots into a grid}$\\ \hline
+\end{longtable}
+
+
+\newpage
+# Results
+Here we are going to show you the results of the data set Myocardial Infraction
+
+```{r load-data, message=FALSE, echo=FALSE}
+# Define the file
+data_file <- "data/Myocardial_infarction_complications_Database.csv"
+
+# Load the data 
+Myocardial <- read.table(data_file, sep=",", header = TRUE, na.strings = "?")
+
+# Head of the myocardial infraction data
+head(Myocardial)
+
+# Make a table
+Myocardial <- as_tibble(Myocardial)
+```
+The selected data is the blood pressures of the patients that has arrived. This violin plot shows the ages which has a higher blood pressure whether it is systolic or diastolic.
+```{r, warning=FALSE, fig.cap="\\label{fig:blood_pressure}Blood pressures of patients according to the ECT (Emergency cardiology team) and ICU (Intensive care unit)", out.height='60%', out.width='75%'}
+tmp <- Myocardial %>% select(2, 35:38) %>% drop_na()
+
+df1 <- data.frame(x=tmp$AGE, y=tmp$S_AD_KBRIG)
+df2 <- data.frame(x=tmp$AGE, y=tmp$D_AD_KBRIG)
+df3 <- data.frame(x=tmp$AGE, y=tmp$S_AD_ORIT)
+df4 <- data.frame(x=tmp$AGE, y=tmp$D_AD_ORIT)
+
+ggplot(df1, aes(x,y)) +
+  geom_violin(aes(color="Systolic blood pressure of ECT")) +
+  geom_jitter(aes(color="Systolic blood pressure of ECT"), 
+              alpha=0.4) +
+  geom_violin(data=df2,aes(color="Diastolic blood pressure of ECT")) +
+  geom_jitter(aes(color="Diastolic blood pressure of ECT"),
+              alpha=0.4) +
+  geom_violin(data=df3,aes(color="Systolic blood pressure of ICU")) +
+   geom_jitter(aes(color="Systolic blood pressure of ICU"),
+              alpha=0.4) +
+  geom_violin(data=df4, aes(color="Diastolic blood pressure of ICU")) +
+   geom_jitter(aes(color="Diastolic blood pressure of ICU"),
+              alpha=0.4) +
+  xlab("Ages of patients (in years)") +
+  ylab("blood pressures (in mmHg)") +
+  labs(color="legend")
+```
+
+Figure \ref{fig:blood_pressure} shows that there are a few outliers in this selected data set. The distribution is expected because most of the patients could have normal blood pressure. Most of the patients have normal diastolic blood pressure in this case, but the patients who measured the systolic blood pressure have a higher mmHg. This actively demonstrates that their heart pushed a lot of blood out. So when they have higher systolic blood pressure for an extended period, it can increase your risk of strokes and heart disease. 
+
+
+Made a bar chart to check if the time elapsed from the beginning of the attack of CHD to the hospital of all the patients relates to the risk of strokes or heart diseases.
+```{r, warning=FALSE, fig.cap="\\label{fig:time}Time elapsed from the beginning of the attack of CHD to the hospital", out.width='75%'}
+ggplot(Myocardial, aes(x=factor(TIME_B_S))) +
+  geom_bar(width = 0.7, fill = "orchid4") +
+  xlab("Time elapsed from the start of the attack to the hospital") +
+  ylab("Numbers of patients")
+```
+
+This bar chart \ref{fig:time} shows that the the time elapsed is higher at the number 2. Number 2 is the time elapsed of 2-4 hours. Which could be concluded that the time elapsed is mostly around the time of 2 tot 4 hours for most of the patients that has been admitted to the hospital. 
+
+```{r, warning=FALSE, echo=FALSE}
+# Mutating the sex attribute to make it readable.
+Myocardial_SEX <- Myocardial %>%
+  mutate(SEX = factor(SEX, labels = c("Female", "Male"), levels = c(0, 1)))
+```
+
+This figure shows the blood pressure with different sex and ages to see if there any relation between the blood pressure and the sex and ages.
+```{r, warning=FALSE, fig.cap="\\label{fig:ds_bloodpressure} Blood pressure according to the Emergency Cardiology Team (EC) and Intensive Care Unit (IC) with the variables sex and ages", out.width='75%'}
+# Plots the blood pressures
+SB_EC <- ggplot(Myocardial_SEX, aes(x= S_AD_KBRIG, y=AGE)) +
+  geom_jitter(aes(color = SEX), alpha = 0.3) +
+  xlab("Systolic bloodpressure\naccording to EC")
+DB_EC <- ggplot(Myocardial_SEX, aes(x=D_AD_KBRIG, y=AGE)) +
+  geom_jitter(aes(color = SEX), alpha = 0.3) +
+  xlab("Diastolic bloodpressure\naccording to EC")
+SB_IC <- ggplot(Myocardial_SEX, aes(x=S_AD_ORIT, y=AGE)) +
+  geom_jitter(aes(color = SEX), alpha = 0.3) +
+  xlab("Systolic bloodpressure\naccording to IC")
+DB_IC <- ggplot(Myocardial_SEX, aes(x=D_AD_ORIT, y=AGE)) +
+  geom_jitter(aes(color = SEX), alpha = 0.3) +
+  xlab("Diastolic bloodpressure\naccording to IC")
+
+# Combine the plots
+plot_grid(SB_EC, DB_EC, SB_IC, DB_IC, labels = c("A", "B", "C", "D"),
+          label_size = 12)
+```
+
+Figure \ref{fig:ds_bloodpressure} shows that most of the males in comparison to the females were younger than 60. And most of the females where older than 60. It could be concluded that the males have more risk to have a strokes or heart diseased at a younger age. 
+
+
+```{r, warning=FALSE, echo=FALSE}
+# Making a subset of the ecg to make a violin plot with it.
+Myocardial.ECG <- Myocardial %>%
+  select("AGE", "ritm_ecg_p_01", "ritm_ecg_p_07", "ritm_ecg_p_08") %>%
+  pivot_longer(-AGE, names_to = "sinus_with_a_heart_rate",
+               values_to = "heart_rate") %>% drop_na()
+
+# Mutating the heart rate to yes and no, to understand it better
+Myocardial.ECG <- Myocardial.ECG %>%
+  mutate(heart_rate = factor(heart_rate, labels = c("No","Yes"),
+                             levels = c(0, 1)))
+
+head(Myocardial.ECG)
+```
+
+This figure shows the distribution of the myocardial infraction heart rate data set. This violin plot will show the distribution of the myocardial infraction heart rate data set of the patients at the time of admission to the hospital. Made a range of the heart rate with the ages of the patients to see if the patients fell in the category of the heart rate below 60, between 60 and 60 and above 90.
+```{r, warning=FALSE, fig.cap="\\label{fig:ecg} ECG rhythm at the time of admission to the hospital", out.height='60%', out.width='75%'}
+# Violin plot of the ECG rhythm
+ggplot(Myocardial.ECG, aes(sinus_with_a_heart_rate, AGE, col = heart_rate))+
+  geom_violin() +
+  geom_jitter(alpha = 0.1) +
+  scale_x_discrete(labels = c('heart rate 60-90','heart rate above 90',
+                              'heart rate above below 60')) +
+  ylab("Ages of the patients (in years)") +
+  xlab("ECG rhythm (in sinus)")
+```
+
+Figure \ref{fig:ecg} shows that most of the patients didn't have a heart rate below 60 at the time of admission to the hospital. And it shows that most of the patients had a normal heart rhythm at the time of admission, so it could mean they don't have a problem with their heart rate. Patients with a heart rate above 90 should be observed because it could lead to heart diseases if they have an irregular heart rate.
+
+\newpage
+### Clustering of the myocardial infraction data set
+
+Made a PCA to show the clustering of the data set.
+```{r, warning=FALSE, fig.cap="\\label{fig:myo_pca}PCA of the classes that were important to see the cluserting of the data were taken and set in a prcomp we could see the variance of our PCA.", out.width='75%', out.height='60%'}
+# Selecting the data to make a PCA
+rows <- nrow(Myocardial)
+
+myo <- Myocardial %>%
+  select(where(function(x){sum(is.na(x))/rows < 0.3})) %>%
+  select(-ID) %>%
+  select(where(function(x){sum(is.infinite(x)) == 0})) %>%
+  select(where(function(x){(sum(x == 0, na.rm=T) / rows) < 0.8})) %>%
+  drop_na()
+
+myo_pca <- prcomp(as.matrix(myo),
+scale. = T,
+center = T)
+# Plotting the pca
+plot(myo_pca, type = "l")
+```
+
+This figure \ref{fig:myo_pca} shows the variances of the PCA and shows that it is decreasing.
+```{r}
+#shows the summary of PCA of the myocardial infraction
+summary(myo_pca)
+```
+
+This summary of PCA shows measures of the components. It shows the standard deviation, the proportion of the variance and the cumulative proportion. The proportion of the variance indicates that the data set has a low percentage of variability. This could be seen in the data set. This could be because most of the columns have only two variables, yes or no, in numeric levels, which results in low variability. 
+
+Making a PCA plot with the information of the PCA variances.
+```{r, fig.cap="\\label{fig:pca} PCA plot of the myocardial of each complications with taking the group klasses of the causes of the myocardial infraction.", out.height='65%', out.width='75%'}
+# Plot the PCA 
+g <- ggbiplot(myo_pca, obs.scale = 1, var.scale = 1, ellipse = FALSE, circle = TRUE)
+g <- g + scale_color_discrete(name = '') 
+g <- g + theme(legend.direction = 'horizontal',
+legend.position = 'top')
+# Show plot
+g
+```
+
+Figure \ref{fig:pca} shows a scatter plot of the variances of all the component.  IT shows a variation of each principal component of the data where the x-axis shows the number of components and the y-axis shows the amount of variations. But \ref{fig:pca} PC1 explains only 7.7% variations and PC2 explains only 10% variations. So this actively demonstrates that it doesn't show all of the variances of the myocardial infraction data.
+
+#### Machine learning
+\
+\
+The next figure are the results of the machine learning analysis in Weka.\cite{Weka}
+```{r classifiers}
+classifiers <- read.csv(file ='Weka_Data/Classifiers.csv', sep = ",", header = TRUE, fileEncoding="UTF-8-BOM")
+kable(classifiers, caption = "Classification using cross validation 10-fold") %>%
+  kable_styling(latex_options = 'scale_down', position = 'center')
+
+
+```
+
+The table \ref{tab:classifiers} shows the results of the 8 classifiers from the machine learning algorithm using weka.
+The results are shows speed, accuracy,  True Positive (TP), False Positive(FP), True Negative(TN), and False Negative(FN). The speed is shown in seconds, the accuracy is shown in percentages. The last four of the table \ref{tab:classifiers} are part of the confusion matrix in Weka. Because the class that was chosen has 8 classes the classes are categorized in unknown and all the lethal causes.
+
+Looking at the table \ref{tab:classifiers} you could see that there are a few who has a higher accuracy compared to the others. OneR has 88.6% accuracy, RandomForest has 86.1% accuracy and SimpleLogistic has 86.2% accuracy. Because the data is about diseases the RandomForest and SimpleLogistic is a good algorithm to use even though the OneR scored better in accuracy.
+
+
+```{r, cost_sensitive}
+costsensitive <- read.csv("Weka_Data/CostSensitive.csv", sep = ";",
+                          header = TRUE, fileEncoding="UTF-8-BOM")
+kable(costsensitive, caption = "CostSensitiveClassifier with the two algorithms" ) %>%
+  kable_styling(latex_options = 'scale_down', position = 'center')
+```
+
+The table \ref{tab:cost_sensitive} shows the CostSensitiveClassifier for the two algorithms that work the best for the Myocardial Infraction data set, SimpleLogistic and RandomForest. The costMatrix is adapted from 1.0 to 4.0 for each build of the CostSensitiveClassifier. The RandomeForest has for each row a different confusion matrix and accuracy. In contrast, SimpleLogistic has the same accuracy for the first two rows but, like the RandomForest different confusion matrix.
+The costMatrix cost of the FP is increased in this research. The reason for this is we don't want people who actually have heart diseases to be predicted with the unknown, as in other diseases or doesn't have any diseases. In the confusion matrix, the FN is increased so that that FP decreases. The results that we want to keep with this data set are the lethal causes, the TN, and the true positives, which is the unknown. This could be patients that didn't have any lethal reason in the aspect of heart diseases. And the results of the patients are not related to heart diseases. But it can also be that those patients need more research. 
+
+In table \ref{tab:cost_sensitive} it shows that the RandomForest with the cost adapted to 2.0 the accuracy increases by approximately 0.4, but when the cost is increased to 3.0 and 4.0, the accuracy decreases. But with the algorithm SimpleLogistic, the accuracy is the same for the cost with 1.0 and 2.0, but like the RandomForest, the accuracy decreases.
+
+#### ROC curve analysis
+\
+\
+The following section visualizes Receiver Operating Characteristics (ROC) curves for both RandomForest and SimpleLogistic ROC curve is a graph showing the performance of a classification model at all threshold settings. The ROC curve is created by plotting the True Positive Rate (TPR) against the False Positive Rate (FPR), where TPR is on the y-axis and FDR is on the x-axis.
+
+ROC curve for the classifier RandomForest and SimpleLogistic with the curve of all the threshold setting with the class attribute cardiogenic shock, because the cost matrix shows that the true negatives are mostly the cardiogenic shock.
+
+```{r, fig.cap="\\label{fig:roc_curve} ROC curve for the classifiers RandomForest and SimpleLogistic at all threshold setting with the attribute cardiogenic shock"}
+
+# Read the roc curve data of RandomForest and SimpleLogisitic
+roc_data_randomforest <- read.table("Weka_Data/roccurve_randomforest.arff",
+                                    sep = ",", comment.char = "@")
+roc_data_simplelogistic <- read.table("Weka_Data/roccurve_simplelogistic.arff",
+                                    sep = ",", comment.char = "@")
+
+# Defining the names the roc data for RandomForest
+names(roc_data_randomforest) <- c("Instance_number", "True_Positives", "False_Negatives",
+                         "False_Positives", "True_Negatives", 
+                         "False_Positive_Rate", "True_Positive_Rate", 
+                         "Precision", "Recall", "Fallout", "FMeasure", 
+                         "Sample_Size", "Lift", "Threshold")
+
+
+# Assign colors for the classifier and threshold
+colors <- c(classifier ="orange", threshold = "blue")
+
+# Plot the ROC Curve of RandomForest
+roc_randomforest <- ggplot(data = roc_data_randomforest, mapping = aes(x = False_Positive_Rate, 
+                                             y = True_Positive_Rate)) +
+  geom_point(mapping = aes(color = "classifier")) +
+  geom_line(aes(color = "classifier")) +
+  geom_abline(aes(color = "threshold", slope = 1, intercept = 0)) +
+  scale_color_manual(values = colors) +
+  ggtitle("RandomForest") +
+  xlab("False Positive Rate") +
+  ylab("True Positive Rate") +
+  theme_pubr() +
+  theme(legend.title = element_blank())
+
+# Define the names for SimpleLogistic
+names(roc_data_simplelogistic) <- names(roc_data_randomforest)
+
+# Plot the ROC Curve of SimpleLogistic
+roc_simplelogistic <- ggplot(data = roc_data_simplelogistic, mapping = aes(x = False_Positive_Rate, 
+                                             y = True_Positive_Rate)) +
+  geom_point(mapping = aes(color = "classifier")) +
+  geom_line(aes(color = "classifier")) +
+  geom_abline(aes(color = "threshold", slope = 1, intercept = 0)) +
+  scale_color_manual(values = colors) +
+  ggtitle("SimpleLogistic") +
+  xlab("False Positive Rate") +
+  ylab("True Positive Rate") +
+  theme_pubr() +
+  theme(legend.title = element_blank())
+
+# Combine ROC Curve of RandomForest and SimpleLogistic plots
+combined_roccurve <- plot_grid(roc_randomforest + theme(legend.position = "none"),
+                               roc_simplelogistic + theme(legend.position = "none"),
+                               labels = c("A", "B"), label_size = 12)
+# Create legend
+legend <- get_legend(roc_simplelogistic + guides(color = guide_legend(nrow = 1)))
+
+# Plot the combined plots
+plot_grid(combined_roccurve, legend, ncol = 1)
+
+```
+
+In figure \ref{fig:roc_curve} there are two figures with a ROC curve. The first one figure \ref{fig:roc}A shows the ROC curve from the algorithm RandomForest and the second figure \ref{fig:roc}B shows the ROC curve from the algorithm SimpleLogistic. The TPR is plotted against the FPR at various thresholds, forming a line when the dots joins. The area under the ROC curve shown in orange is called the Area Under The Curve (AUC) curve. The blue threshold line shown in the figures is straight, the predicted observation probability. Figure \ref{fig:roc_curve}A line classifier has dots that are connected, and between the dots at the end, the dots are connected. The line has almost a line of 90 degrees and a straight angle. This shows that the curve is ideal because the two curves of TP and TN almost do not overlap. The reason for it is that it is perfectly able to distinguish between positive class and negative class. If the two curves overlap, the type 1 and type 2 errors are introduced, and the model runs in a curve or a straight line like the threshold line.
+The ROC curve of SimpleLogistic is shown in figure \ref{fig:roc_curve}B, and the TPR is plotted against the FPR. Both threshold lines of the ROC curve RandomForest and SimpleLogistic are the same. The most significant difference between the two figures is that the ROC curve of the RandomForest line compared to the ROC curve of SimpleLogistic is slightly straighter. This means that the ROC curve RandomForest figure \ref{fig:roc_curve}A has almost an ideal situation because there is virtually no overlap. This the ROC curve of RandomForest is slightly better than SimpleLogistic. In Weka, the SimpleLogistic has the AUC value of 0.842, and the AUC value of RandomForest is 0.890. This will be indicated that the ROC curve of RandomForest is better than SimpleLogistic because the AUC of RandomForest is closer to one which categories as perfect. 
+
+\pagebreak
+
+
+
+\newpage
+# Discussion
+
+
+# Conclusion
+
+\newpage
+\begin{thebibliography}{9}
+\bibitem{hopkins}
+Johns Hopkins medicine: \textit{Heart attack}, Conditions and Diseases, Retrieved from https://www.hopkinsmedicine.org/health/conditions-and-diseases/heart-attack on 4-10-2021
+
+\bibitem{MLR}
+Machine learning repository: \textit{Machine Learning}, Myocardial infraction complications data set, Retrieved from https://archive.ics.uci.edu/ml/datasets/Myocardial+infarction+complications on 04-10-2021
+
+\bibitem{RStudio}
+RStudio: \textit{Download RStudio}, Download the RStudio IDE, Retrieved from https://www.rstudio.com/products/rstudio/download/ on 15-11-2021
+
+\bibitem{Weka}
+Weka: \textit{Download Weka}, Downloading and installing Weka, Retrieved from https://waikato.github.io/weka-wiki/ then Downm,              loading and installing Weka on 15-11-2021
+
+\bibitem{intellij}
+IntelliJ IDEA: \textit{Download IntelliJ}, Download IntelliJ IDEA, Retrieved from https://www.jetbrains.com/idea/download/ on 19-11-2021
+
+\bibitem{Java}
+Java, Oracle: \textit{Download Java}, Download Java, Retrieved from https://www.java.com/nl/download/ on 19-11-2021
+
+\bibitem{JDK}
+Java SE Development Kit 17.0.1: \textit{Download JDK}, Java SE 17 Archive Downloads, Retrieved from https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html on 19-11-2021
+
+\bibitem{J48}
+Nilima Khanna, Agustus 18: \textit{J48 classification}, J48 Classification (C4.5 Algorithm) in a Nutshell,
+Retrieved from https://medium.com/@nilimakhanna1/j48-classification-c4-5-algorithm-in-a-nutshell-24c50d20658e on 19-11-201
+
+
+\end{thebibliography}
+
+
+\newpage
+# Appendix
+````{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
+```
