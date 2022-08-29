@@ -121,12 +121,12 @@ $\text{cowplot}$ & $\text{1.1.1}$ &$\text{Arrange multiple plots into a grid}$\\
 
 To analyse and create classifiers for a model that will predict the consequences of myocardial infarction, machine learning is applied. Weka Version 3.85 is the programme used to accomplish this.\cite{Weka} Weka is open-source software that offers tools for processing data and implementing various machine learning algorithms into practise.
 
-After creating and saving the best model. Java uses the model to build a Java wrapper. Java wrapper is produced using IntelliJ IDEA Version 2021.2.1 software. \cite{intellij} A development environment for creating Java-based applications, IntelliJ makes use of the JDK. It contains resources for developing and evaluating programmes written in Java programming language that operate on the Java platform.
+After creating and saving the best model. Java uses the model to build a Java wrapper.\cite{Java} Java wrapper is produced using IntelliJ IDEA Version 2021.2.1 software. \cite{intellij} A development environment for creating Java-based applications, IntelliJ makes use of the JDK.\cite{JDK} It contains resources for developing and evaluating programmes written in Java programming language that operate on the Java platform.
 
 
 ## Methods
 
-In RStudio the Exploratory Data Analysis (EDA) is first performed using R. This was accomplished via visualizing, transforming, and modeling the data. The myocardial infraction data set's variation, distribution, missing values, and clustering are displayed by creating numerous plots in R using the libraries provided in table \ref{tab}. The libraries ggplot2, pheatmap, and ggbiplot were used to produce numerous plots, and kableExtra was used to produce tables. After visualizing which data is relevant and which isn't, the data had been cleaned. The cleaned myocardial infraction data is used for machine learning in Weka.
+In RStudio the Exploratory Data Analysis (EDA) is first performed using R. This was accomplished via visualizing, transforming, and modeling the data. The myocardial infraction data set's variation, distribution, missing values, and clustering are displayed by creating numerous plots in R using the libraries provided in table \ref{tab:libraries}. The libraries ggplot2, pheatmap, and ggbiplot were used to produce numerous plots, and kableExtra was used to produce tables. After visualizing which data is relevant and which isn't, the data had been cleaned. The cleaned myocardial infraction data is used for machine learning in Weka.
 To find the best model to categorise the instances, there were multiple algorithms applied and evaluated with 10-fold cross-validation in Weka. This was done with the explorer and experimenter in Weka. The best model is kept, and a Java wrapper is made using this model. The myocardial infraction data set and a new data set with the class in unknown are read by the Java wrapper generated in IntelliJ using Java. The programme can classify new instances that are defined in the data set with unidentified classes with the aid of the model.
 
 Throughout this paper, the term "False-Positive" is used to refer to occurrences that were mistakenly classified as Unknown when, in fact, they are Lethal Cause, while "False-Negative" is used to refer to situations that were incorrectly labelled as Lethal cause.
@@ -136,6 +136,25 @@ Code and data for the Java wrapper is available at https://github.com/akastia/Wr
 
 \newpage
 # Results
+
+```{r, libraries, echo=FALSE, message=FALSE}
+## Libraries
+options(digits = 3)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(readr)
+library(gridExtra)
+library(GGally)
+library(purrr)
+library(psych)
+library(kableExtra)
+library(ggbiplot)
+library(png)
+library(ggpubr)
+library(cowplot)
+
+```
 Here we are going to show you the results of the data set Myocardial Infraction.
 
 ```{r load-data, message=FALSE, echo=FALSE}
@@ -390,7 +409,7 @@ plot_grid(combined_roccurve, legend, ncol = 1)
 
 ```
 
-In figure \ref{fig:roc_curve} there are two figures with a ROC curve. The first one figure \ref{fig:roc}A shows the ROC curve from the algorithm RandomForest and the second figure \ref{fig:roc}B shows the ROC curve from the algorithm SimpleLogistic. The TPR is plotted against the FPR at various thresholds, forming a line when the dots joins. The area under the ROC curve shown in orange is called the Area Under The Curve (AUC) curve. The blue threshold line shown in the figures is straight, the predicted observation probability. Figure \ref{fig:roc_curve}A line classifier has dots that are connected, and between the dots at the end, the dots are connected. The line has almost a line of 90 degrees and a straight angle. This shows that the curve is ideal because the two curves of TP and TN almost do not overlap. The reason for it is that it is perfectly able to distinguish between positive class and negative class. If the two curves overlap, the type 1 and type 2 errors are introduced, and the model runs in a curve or a straight line like the threshold line.
+In figure \ref{fig:roc_curve} there are two figures with a ROC curve. The first one figure \ref{fig:roc_curve}A shows the ROC curve from the algorithm RandomForest and the second figure \ref{fig:roc_curve}B shows the ROC curve from the algorithm SimpleLogistic. The TPR is plotted against the FPR at various thresholds, forming a line when the dots joins. The area under the ROC curve shown in orange is called the Area Under The Curve (AUC) curve. The blue threshold line shown in the figures is straight, the predicted observation probability. Figure \ref{fig:roc_curve}A line classifier has dots that are connected, and between the dots at the end, the dots are connected. The line has almost a line of 90 degrees and a straight angle. This shows that the curve is ideal because the two curves of TP and TN almost do not overlap. The reason for it is that it is perfectly able to distinguish between positive class and negative class. If the two curves overlap, the type 1 and type 2 errors are introduced, and the model runs in a curve or a straight line like the threshold line.
 The ROC curve of SimpleLogistic is shown in figure \ref{fig:roc_curve}B, and the TPR is plotted against the FPR. Both threshold lines of the ROC curve RandomForest and SimpleLogistic are the same. The most significant difference between the two figures is that the ROC curve of the RandomForest line compared to the ROC curve of SimpleLogistic is slightly straighter. This means that the ROC curve RandomForest figure \ref{fig:roc_curve}A has almost an ideal situation because there is virtually no overlap. This the ROC curve of RandomForest is slightly better than SimpleLogistic. In Weka, the SimpleLogistic has the AUC value of 0.842, and the AUC value of RandomForest is 0.890. This will be indicated that the ROC curve of RandomForest is better than SimpleLogistic because the AUC of RandomForest is closer to one which categories as perfect. 
 
 \pagebreak
@@ -424,8 +443,7 @@ As discussed there were a lot of properties removed, because of the same results
 
 The goal for this research was to answer the question, can you predict the complications of the patients after the third day of the admission based on the admission period and patients data using machine learning? As seen in image \ref{fig:wrapper} that is predicts the myocardial infraction reliably be predicted with the given information of the patient. It can forecast the class, but how dependable it is must be proven. That much depends on if there are further combinations or additional properties that might have a more significant impact on the class.
 
-Further research is RandomForest good an reliable to use for doctors instead of J48 the most widely used machine learning algorithm.\cite{J48}
-
+Further research is RandomForest good an reliable to use for doctors instead of J48 the most widely used machine learning algorithm.
 The data set had a lot of input features with 12 complications. Which was hard to find what to use to predict. Additionally, there was not much information available regarding the original data and subject. This could be due to the fact that the data only dates back to 1992–1995, however the data is quite organised and clear, so there was enough of patient information.
 
 ### Project proposl for minor
@@ -449,7 +467,7 @@ Machine learning repository: \textit{Machine Learning}, Myocardial infraction co
 RStudio: \textit{Download RStudio}, Download the RStudio IDE, Retrieved from https://www.rstudio.com/products/rstudio/download/ on 15-11-2021
 
 \bibitem{Weka}
-Weka: \textit{Download Weka}, Downloading and installing Weka, Retrieved from https://waikato.github.io/weka-wiki/ then Downm, loading and installing Weka on 15-11-2021
+Weka: \textit{Download Weka}, Downloading and installing Weka, Retrieved from https://waikato.github.io/weka-wiki/ then Download, loading and installing Weka on 15-11-2021
 
 \bibitem{intellij}
 IntelliJ IDEA: \textit{Download IntelliJ}, Download IntelliJ IDEA, Retrieved from https://www.jetbrains.com/idea/download/ on 19-11-2021
@@ -459,10 +477,6 @@ Java, Oracle: \textit{Download Java}, Download Java, Retrieved from https://www.
 
 \bibitem{JDK}
 Java SE Development Kit 17.0.1: \textit{Download JDK}, Java SE 17 Archive Downloads, Retrieved from https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html on 19-11-2021
-
-\bibitem{J48}
-Nilima Khanna, Agustus 18: \textit{J48 classification}, J48 Classification (C4.5 Algorithm) in a Nutshell,
-Retrieved from https://medium.com/@nilimakhanna1/j48-classification-c4-5-algorithm-in-a-nutshell-24c50d20658e on 19-11-201
 
 
 \end{thebibliography}
