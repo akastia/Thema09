@@ -5,6 +5,7 @@ date: " `r Sys.Date()` "
 header-includes:
    - \usepackage{longtable}
    - \usepackage{hyperref}
+   - \usepackage{float}
 output:
     pdf_document:
       fig_caption: yes
@@ -13,6 +14,7 @@ output:
 editor_options:
   chunk_output_type: inline
 linkcolor: blue
+
 ---
 
 ```{r setup, include=FALSE}
@@ -37,6 +39,7 @@ library(ggbiplot)
 library(png)
 library(ggpubr)
 library(cowplot)
+
 ```
 
 \newpage
@@ -336,7 +339,7 @@ With the information of the classifiers we are going to investigate the effect o
 knitr::include_graphics("images/experiment_output.png")
 ```
 
-The image \ref{fig:experimenter} shows the output of the experiment of the same algorithms that are shown in table \ref{tab:classifiers}, but with ten repetitions. And the same three algorithms offer the best accuracy compared to ZeroR. But if you compare to the table \ref{tab:classifiers} it shows that the J48 does it better on the image \ref{fig:experiment} with five differences. And NaiveBayes does slightly better with 0.3 difference, SMO with 0.2 difference and IBk also with a 0.2 difference if compared to the table \ref{tab:classifiers}.
+The image \ref{fig:experimenter} shows the output of the experiment of the same algorithms that are shown in table \ref{tab:classifiers}, but with ten repetitions. And the same three algorithms offer the best accuracy compared to ZeroR. But if you compare to the table \ref{tab:classifiers} it shows that the J48 does it better on the image \ref{fig:experimenter} with five differences. And NaiveBayes does slightly better with 0.3 difference, SMO with 0.2 difference and IBk also with a 0.2 difference if compared to the table \ref{tab:classifiers}.
 Expect for RandomForest it does slightly worse with a 0.1 difference.
 
 The two algorithm that are chosen are RandomForest and SimpleLogistic. The reason for this is that they have a good accuracy and for this data set a tree classifiers are a good algorithm to make a decision as if the patient is at risk. And SimpleLogistic is a good classifier to build a linear logistic regression model, so with this model it can help make a best fitting logistic model to use for deciding which lethal cause a patient could have. 
@@ -375,7 +378,7 @@ The settings for the AttributeSelectedClassifier is to see in the image under th
 knitr::include_graphics("images/attribute_settings.png")
 ```
 
-With the settings that shows in image \ref{fig:attribute_Settings} has been done with four evaluators. The evaluators are *CorrelationAttributeEval*, *GainRatioAttributeEval*, *InfoGainAttributeEval*, and *OneRAttributeEval*. The method search is set on Ranker for all four evaluators and the two algorithms.
+With the settings that shows in image \ref{fig:attribute_settings} has been done with four evaluators. The evaluators are *CorrelationAttributeEval*, *GainRatioAttributeEval*, *InfoGainAttributeEval*, and *OneRAttributeEval*. The method search is set on Ranker for all four evaluators and the two algorithms.
 ```{r, fig.cap="\\label{fig:attributeselection}The outcome of the evaluators from the AttributeSelectedClassifiers for RandomForest and SimpleLogistc", out.width='60%'}
 # Reads the png files to create images
 correclation <- readPNG("images/Correlation.png")
@@ -430,7 +433,8 @@ The meta learners are stacking, boosting and bagging with these were are going t
 First the Paired T-Tester and the paired T-Tester (corrected) has been runned on the data set and both show the same effect in the experimenter for the algorithms RandomForest and SimpleLogistic. For both statistical tests has RandomForest an accuracy of 85,98%, whereas SimpleLogistic has an accuracy of 86.26%. The RandomForest has an lower accuracy than in table \ref{tab:classifiers} while SimpleLogistic has like in the table \ref{tab:classifiers} an accuracy of 86.26%.
 
 ```{r, metalearners}
-meta_learners <- read.csv("Weka_Data/meta_learners.csv", sep = ";", header = TRUE, fileEncoding="UTF-8-BOM")
+meta_learners <- read.csv("Weka_Data/meta_learners.csv", sep = ";", header = TRUE,
+                          fileEncoding="UTF-8-BOM")
 kable(meta_learners, caption = "Meta Leaners with the cross validation 10-fold and with 10 repetitions") %>% kable_styling(latex_options = 'scale_down', position = 'center')
 
 ```
@@ -532,7 +536,7 @@ plot_grid(combined_roccurve, legend, ncol = 1)
 
 ```
 
-In figure \ref{fig:roc_curve} there are two figures with a ROC curve. The first one figure \ref{fig:roc}A shows the ROC curve from the algorithm RandomForest and the second figure \ref{fig:roc}B shows the ROC curve from the algorithm SimpleLogistic. The TPR is plotted against the FPR at various thresholds, forming a line when the dots joins. The area under the ROC curve shown in orange is called the Area Under The Curve (AUC) curve. The blue threshold line shown in the figures is straight, the predicted observation probability. Figure \ref{fig:roc_curve}A line classifier has dots that are connected, and between the dots at the end, the dots are connected. The line has almost a line of 90 degrees and a straight angle. This shows that the curve is ideal because the two curves of TP and TN almost do not overlap. The reason for it is that it is perfectly able to distinguish between positive class and negative class. If the two curves overlap, the type 1 and type 2 errors are introduced, and the model runs in a curve or a straight line like the threshold line.
+In figure \ref{fig:roc_curve} there are two figures with a ROC curve. The first one figure \ref{fig:roc_curve}A shows the ROC curve from the algorithm RandomForest and the second figure \ref{fig:roc_curve}B shows the ROC curve from the algorithm SimpleLogistic. The TPR is plotted against the FPR at various thresholds, forming a line when the dots joins. The area under the ROC curve shown in orange is called the Area Under The Curve (AUC) curve. The blue threshold line shown in the figures is straight, the predicted observation probability. Figure \ref{fig:roc_curve}A line classifier has dots that are connected, and between the dots at the end, the dots are connected. The line has almost a line of 90 degrees and a straight angle. This shows that the curve is ideal because the two curves of TP and TN almost do not overlap. The reason for it is that it is perfectly able to distinguish between positive class and negative class. If the two curves overlap, the type 1 and type 2 errors are introduced, and the model runs in a curve or a straight line like the threshold line.
 The ROC curve of SimpleLogistic is shown in figure \ref{fig:roc_curve}B, and the TPR is plotted against the FPR. Both threshold lines of the ROC curve RandomForest and SimpleLogistic are the same. The most significant difference between the two figures is that the ROC curve of the RandomForest line compared to the ROC curve of SimpleLogistic is slightly straighter. This means that the ROC curve RandomForest figure \ref{fig:roc_curve}A has almost an ideal situation because there is virtually no overlap. This the ROC curve of RandomForest is slightly better than SimpleLogistic. In Weka, the SimpleLogistic has the AUC value of 0.842, and the AUC value of RandomForest is 0.890. This will be indicated that the ROC curve of RandomForest is better than SimpleLogistic because the AUC of RandomForest is closer to one which categories as perfect. 
 
 
@@ -564,7 +568,7 @@ ggplot(learning_data, aes(x = sampleSizePercent, y = Accuracy)) +
   scale_y_continuous(breaks = seq(50, 100, 5))
 ```
 
-The table \ref{tab:learningcurve} contains two columns with the sample size percent and the second column gives the accuracy for different sample size percentages from the classifier FilteredClassifier. Here can been seen that the accuracy of 1% to 100% is it increasing. However from 1% to 5% sample size percent the accuracy was increasing, but when it hits the 10% sample size percent the accuracy decreases with 1%. Afterwards it was increasing till it hits the mark of 100% sample size percent, so the highest is accuracy is for 100% of the sample size which is 98.5%. These values create a learning curve together which is shown in figure \ref{fig:learningcurve}. Figure \ref{fig:learningcurve} has a green line with points which shows the accuracy for the different sample size percentages of RandomForest and the dashed blue line shows the baseline which is the accuracy of ZeroR for every percentage. The accuracy of ZeroR is the same because is the simplest classification method that relies only on predicting the class and ignores all attributes. And ZeroR has thuis for all percentages the same accuracy. Compared to the baseline of ZeroR the RandomForest has a much higher accuracy. RandomForest shows a smooth linear increase. To get a resasonable performance there is at least 80% of the data needed, because from 80% it is above 95% accuracy and below 80% of the sample size it is lower than 95% accuracy. But for 100% of the sample size has RandomForest an accuracy of 98.5%. So there is at least 80% of the data needed to get a reasonable performance and to get a better performance 100% of the data is needed.
+The table \ref{tab:learning} contains two columns with the sample size percent and the second column gives the accuracy for different sample size percentages from the classifier FilteredClassifier. Here can been seen that the accuracy of 1% to 100% is it increasing. However from 1% to 5% sample size percent the accuracy was increasing, but when it hits the 10% sample size percent the accuracy decreases with 1%. Afterwards it was increasing till it hits the mark of 100% sample size percent, so the highest is accuracy is for 100% of the sample size which is 98.5%. These values create a learning curve together which is shown in figure \ref{fig:learningcurve}. Figure \ref{fig:learningcurve} has a green line with points which shows the accuracy for the different sample size percentages of RandomForest and the dashed blue line shows the baseline which is the accuracy of ZeroR for every percentage. The accuracy of ZeroR is the same because is the simplest classification method that relies only on predicting the class and ignores all attributes. And ZeroR has thus for all percentages the same accuracy. Compared to the baseline of ZeroR the RandomForest has a much higher accuracy. RandomForest shows a smooth linear increase. To get a reasonable performance there is at least 80% of the data needed, because from 80% it is above 95% accuracy and below 80% of the sample size it is lower than 95% accuracy. But for 100% of the sample size has RandomForest an accuracy of 98.5%. So there is at least 80% of the data needed to get a reasonable performance and to get a better performance 100% of the data is needed.
 
 
 \newpage
